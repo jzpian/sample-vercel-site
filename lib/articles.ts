@@ -4,28 +4,43 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
 
-const articlesDirectory = path.join(process.cwd(), 'articles');
+// Helper to get the absolute path to the articles directory
+const getArticlesDirectory = () => {
+  // In development, process.cwd() is the project root
+  // In Vercel deployment, the 'articles' folder might be outside the root of the bundled serverless function
+  // Using path.resolve for robustness through different environments
+  return path.join(process.cwd(), 'articles');
+}
 
 export function getSortedArticlesData() {
-  // Get file names under /articles
-  const fileNames = fs.readdirSync(articlesDirectory);
+  const articlesDirectory = getArticlesDirectory();
+  let fileNames: string[] = [];
+  try {
+    fileNames = fs.readdirSync(articlesDirectory);
+  } catch (error) {
+    console.error(`Error reading articles directory at ${articlesDirectory}:`, error);
+    return []; // Return empty array if directory cannot be read
+  }
+
   const allArticlesData = fileNames.map((fileName) => {
-    // Remove ".md" from file name to get id
     const id = fileName.replace(/\.md$/, '');
-
-    // Read markdown file as string
     const fullPath = path.join(articlesDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    let fileContents = '';
+    try {
+      fileContents = fs.readFileSync(fullPath, 'utf8');
+    } catch (error) {
+      console.error(`Error reading file ${fullPath}:`, error);
+      return null; // Return null for this article if it cannot be read
+    }
 
-    // Use gray-matter to parse the article metadata section
     const matterResult = matter(fileContents);
 
-    // Combine the data with the id
     return {
       id,
       ...(matterResult.data as { date: string; title: string; author: string; tags: string[]; categories: string[] }),
     };
-  });
+  }).filter(Boolean); // Filter out any null entries due to read errors
+
   // Sort articles by date
   return allArticlesData.sort((a, b) => {
     if (a.date < b.date) {
@@ -33,21 +48,26 @@ export function getSortedArticlesData() {
     } else {
       return -1;
     }
-  });
+  }) as Array<{id: string; date: string; title: string; author: string; tags: string[]; categories: string[]}>;
 }
 
 export async function getArticleData(id: string) {
+  const articlesDirectory = getArticlesDirectory();
   const fullPath = path.join(articlesDirectory, `${id}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
+  let fileContents = '';
 
-  // Use gray-matter to parse the post metadata section
+  try {
+    fileContents = fs.readFileSync(fullPath, 'utf8');
+  } catch (error) {
+    console.error(`Error reading article file ${fullPath} for ID ${id}:`, error);
+    // Re-throw to propagate error, e.g., to trigger a 404 in Next.js
+    throw new Error(`Failed to read article file: ${id}.md`);
+  }
+
   const matterResult = matter(fileContents);
-
-  // Use remark to convert markdown into HTML string
   const processedContent = await remark().use(html).process(matterResult.content);
   const contentHtml = processedContent.toString();
 
-  // Combine the data with the id and contentHtml
   return {
     id,
     contentHtml,
@@ -56,20 +76,15 @@ export async function getArticleData(id: string) {
 }
 
 export function getAllArticleIds() {
-  const fileNames = fs.readdirSync(articlesDirectory);
-  // Returns an array that looks like this:
-  // [
-  //   {
-  //     params: {
-  //       id: 'ssg-ssr'
-  //     }
-  //   },
-  //   {
-  //     params: {
-  //       id: 'pre-rendering'
-  //     }
-  //   }
-  // ]
+  const articlesDirectory = getArticlesDirectory();
+  let fileNames: string[] = [];
+  try {
+    fileNames = fs.readdirSync(articlesDirectory);
+  } catch (error) {
+    console.error(`Error reading articles directory for IDs at ${articlesDirectory}:`, error);
+    return [];
+  }
+
   return fileNames.map((fileName) => {
     return {
       params: {
