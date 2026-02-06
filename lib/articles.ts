@@ -1,1 +1,109 @@
-import fs from \'fs\';\nimport path from \'path\';\nimport matter from \'gray-matter\';\nimport { remark } from \'remark\';\nimport html from \'remark-html\';\n\n// Define a type for a single article\'s metadata + ID\nexport type ArticleData = {\n  id: string;\n  date: string;\n  title: string;\n  author: string;\n  tags: string[];\n  categories: string[];\n};\n\n// Helper to get the absolute path to the articles directory\nconst getArticlesDirectory = () => {\n  return path.join(process.cwd(), \'articles\');\n}\n\nexport function getSortedArticlesData() {\n  const articlesDirectory = getArticlesDirectory();\n  let fileNames: string[] = [];\n  try {\n    fileNames = fs.readdirSync(articlesDirectory);\n  } catch (error) {\n    console.error(`Error reading articles directory at ${articlesDirectory}:`, error);\n    return [];\n  }\n\n  const allArticlesData = fileNames.map((fileName) => {\n    const id = fileName.replace(/\\.md$/, \'\');\n    const fullPath = path.join(articlesDirectory, fileName);\n    let fileContents = \'\';\n    try {\n      fileContents = fs.readFileSync(fullPath, \'utf8\');\n    } catch (error) {\n      console.error(`Error reading file ${fullPath}:`, error);\n      return null; // Return null for this article if it cannot be read\n    }\n\n    const matterResult = matter(fileContents);\n\n    return {\n      id,\n      ...(matterResult.data as Omit<ArticleData, \'id\'>), // Use Omit as id is already present\n    } as ArticleData; // Explicitly cast to ArticleData to satisfy TS\n  }).filter((article): article is ArticleData => article !== null); // Filter out nulls with a type predicate\n\n  // Sort articles by date\n  return allArticlesData.sort((a, b) => {\n    if (a.date < b.date) {\n      return 1;\n    } else {\n      return -1;\n    }\n  });\n}\n\nexport async function getArticleData(id: string) {\n  if (!id) {\n    console.error(\"getArticleData received an undefined ID.\");\n    throw new Error(\"Article ID is undefined.\");\n  }\n\n  const articlesDirectory = getArticlesDirectory();\n  const fullPath = path.join(articlesDirectory, `${id}.md`);\n  let fileContents = \'\';\n\n  try {\n    fileContents = fs.readFileSync(fullPath, \'utf8\');\n  } catch (error) {\n    console.error(`Error reading article file ${fullPath} for ID ${id}:`, error);\n    throw new Error(`Failed to read article file: ${id}.md`);\n  }\n\n  const matterResult = matter(fileContents);\n  const processedContent = await remark().use(html).process(matterResult.content);\n  const contentHtml = processedContent.toString();\n\n  return {\n    id,\n    contentHtml,\n    ...(matterResult.data as Omit<ArticleData, \'id\'>), // Use Omit as id is already present\n  };\n}\n\nexport function getAllArticleIds() {\n  const articlesDirectory = getArticlesDirectory();\n  let fileNames: string[] = [];\n  try {\n    fileNames = fs.readdirSync(articlesDirectory);\n  } catch (error) {\n    console.error(`Error reading articles directory for IDs at ${articlesDirectory}:`, error);\n    return [];\n  }\n  console.log(\`[getAllArticleIds] Found fileNames: \${fileNames.join(\', \')}\`);\n\n  const paths = fileNames.map((fileName) => {\n    return {\n      params: {\n        id: fileName.replace(/\\.md$/, \'\'),\n      },\n    };\n  });\n  console.log(\`[getAllArticleIds] Generated paths: \${JSON.stringify(paths)}\`);\n  return paths;\n}\n
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { remark } from 'remark';
+import html from 'remark-html';
+
+// Define a type for a single article's metadata + ID
+export type ArticleData = {
+  id: string;
+  date: string;
+  title: string;
+  author: string;
+  tags: string[];
+  categories: string[];
+};
+
+// Helper to get the absolute path to the articles directory
+const getArticlesDirectory = () => {
+  return path.join(process.cwd(), 'articles');
+}
+
+export function getSortedArticlesData() {
+  const articlesDirectory = getArticlesDirectory();
+  let fileNames: string[] = [];
+  try {
+    fileNames = fs.readdirSync(articlesDirectory);
+  } catch (error) {
+    console.error(`Error reading articles directory at ${articlesDirectory}:`, error);
+    return [];
+  }
+
+  const allArticlesData = fileNames.map((fileName) => {
+    const id = fileName.replace(/\.md$/, '');
+    const fullPath = path.join(articlesDirectory, fileName);
+    let fileContents = '';
+    try {
+      fileContents = fs.readFileSync(fullPath, 'utf8');
+    } catch (error) {
+      console.error(`Error reading file ${fullPath}:`, error);
+      return null; // Return null for this article if it cannot be read
+    }
+
+    const matterResult = matter(fileContents);
+
+    return {
+      id,
+      ...(matterResult.data as Omit<ArticleData, 'id'>), // Use Omit as id is already present
+    } as ArticleData; // Explicitly cast to ArticleData to satisfy TS
+  }).filter((article): article is ArticleData => article !== null); // Filter out nulls with a type predicate
+
+  // Sort articles by date
+  return allArticlesData.sort((a, b) => {
+    if (a.date < b.date) {
+      return 1;
+    } else {
+      return -1;
+    }
+  });
+}
+
+export async function getArticleData(id: string) {
+  if (!id) {
+    console.error("getArticleData received an undefined ID.");
+    throw new Error("Article ID is undefined.");
+  }
+
+  const articlesDirectory = getArticlesDirectory();
+  const fullPath = path.join(articlesDirectory, `${id}.md`);
+  let fileContents = '';
+
+  try {
+    fileContents = fs.readFileSync(fullPath, 'utf8');
+  } catch (error) {
+    console.error(`Error reading article file ${fullPath} for ID ${id}:`, error);
+    throw new Error(`Failed to read article file: ${id}.md`);
+  }
+
+  const matterResult = matter(fileContents);
+  const processedContent = await remark().use(html).process(matterResult.content);
+  const contentHtml = processedContent.toString();
+
+  return {
+    id,
+    contentHtml,
+    ...(matterResult.data as Omit<ArticleData, 'id'>), // Use Omit as id is already present
+  };
+}
+
+export function getAllArticleIds() {
+  const articlesDirectory = getArticlesDirectory();
+  let fileNames: string[] = [];
+  try {
+    fileNames = fs.readdirSync(articlesDirectory);
+  } catch (error) {
+    console.error(`Error reading articles directory for IDs at ${articlesDirectory}:`, error);
+    return [];
+  }
+  console.log(`[getAllArticleIds] Found fileNames: ${fileNames.join(', ')}`);
+
+  const paths = fileNames.map((fileName) => {
+    return {
+      params: {
+        id: fileName.replace(/\.md$/, ''),
+      },
+    };
+  });
+  console.log(`[getAllArticleIds] Generated paths: ${JSON.stringify(paths)}`);
+  return paths;
+}
