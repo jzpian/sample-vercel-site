@@ -1,15 +1,25 @@
 import { getAllArticleIds, getArticleData } from '../../../lib/articles';
 
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
-  console.log("--- generateStaticParams is running ---"); // New debug log
+  console.log("--- generateStaticParams is running ---");
   const paths = getAllArticleIds();
-  console.log("--- generateStaticParams generated paths: ", JSON.stringify(paths), " ---"); // New debug log
+  console.log("--- generateStaticParams generated paths: ", JSON.stringify(paths), " ---");
   return paths;
 }
 
 export default async function ArticlePage({ params }: { params: { id: string } }) {
+  console.log(`[ArticlePage] Received params: ${JSON.stringify(params)}`);
+
+  if (!params || !params.id) {
+    console.error(`[ArticlePage Error] params or params.id is missing: ${JSON.stringify(params)}`);
+    // In a production app, you might want to redirect to a 404 page
+    // For now, we'll throw an error or use notFound()
+    notFound();
+  }
+
   const articleData = await getArticleData(params.id);
 
   return (
