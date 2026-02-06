@@ -1,38 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --theme-bg: 107, 123, 143; /* Muted blue-gray from cloud background */
-  --theme-text-primary: 255, 255, 255; /* White for main headings */
-  --theme-text-secondary: 208, 208, 208; /* Lighter gray for subtle text */
-  --theme-button-bg: 54, 69, 96; /* Dark blue for buttons */
-  --theme-button-text: 255, 255, 255; /* White text on buttons */
-  --theme-border: 208, 208, 208; /* Light gray for borders/inputs */
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  color: rgb(var(--theme-text-primary));
-  background: rgb(var(--theme-bg));
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-}
-
-/* Styling for the prose class from @tailwindcss/typography */
-.prose {
-  --tw-prose-body: rgb(var(--theme-text-primary));
-  --tw-prose-headings: rgb(var(--theme-text-primary));
-  --tw-prose-lead: rgb(var(--theme-text-secondary));
-  --tw-prose-links: rgb(var(--theme-button-bg));
-  --tw-prose-bold: rgb(var(--theme-text-primary));
-  --tw-prose-counters: rgb(var(--theme-text-secondary));
-  --tw-prose-bullets: rgb(var(--theme-text-secondary));
-  --tw-prose-hr: rgb(var(--theme-border));
-  --tw-prose-quotes: rgb(var(--theme-text-secondary));
-  --tw-prose-quote-borders: rgb(var(--theme-border));
-  --tw-prose-captions: rgb(var(--theme-text-secondary));
-  --tw-prose-code: rgb(var(--theme-text-primary));
-  --tw-prose-pre-code: rgb(var(--theme-text-secondary));
-  --tw-prose-pre-bg: rgba(var(--theme-button-bg), 0.2);
-  --tw-prose-th-borders: rgb(var(--theme-border));
-  --tw-prose-td-borders: rgb(var(--theme-border));
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
