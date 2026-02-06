@@ -1,4 +1,4 @@
-import { getAllArticleIds, getArticleData } from '../../../../lib/articles';
+import { getAllArticleIds, getArticleData } from '../../../lib/articles';
 
 import Link from 'next/link';
 
