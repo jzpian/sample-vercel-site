@@ -3,7 +3,9 @@ import { getAllArticleIds, getArticleData } from '../../../lib/articles';
 import Link from 'next/link';
 
 export async function generateStaticParams() {
+  console.log("--- generateStaticParams is running ---"); // New debug log
   const paths = getAllArticleIds();
+  console.log("--- generateStaticParams generated paths: ", JSON.stringify(paths), " ---"); // New debug log
   return paths;
 }
 
