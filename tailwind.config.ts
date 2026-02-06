@@ -1,7 +1,8 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: 'class',
+  // Temporarily disabling dark mode to match the fixed light theme of the Wix template
+  // darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,16 +11,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Map semantic names used in components to CSS variables for light/dark
-        'card-light': 'rgb(var(--card-rgb) / <alpha-value>)',
-        'card-dark': 'rgb(var(--card-rgb) / <alpha-value>)',
-        'foreground': 'rgb(var(--foreground-rgb) / <alpha-value>)',
-        'accent-light': 'rgb(var(--accent-rgb) / <alpha-value>)',
-        'accent-dark': 'rgb(var(--accent-rgb) / <alpha-value>)',
-        'border-light': 'rgb(var(--border-rgb) / <alpha-value>)',
-        'border-dark': 'rgb(var(--border-rgb) / <alpha-value>)',
+        'theme-bg': '#6b7b8f', // Muted blue-gray from cloud background
+        'theme-text-primary': '#ffffff', // White for main headings
+        'theme-text-secondary': '#d0d0d0', // Lighter gray for subtle text
+        'theme-button-bg': '#364560', // Dark blue for buttons
+        'theme-button-text': '#ffffff', // White text on buttons
+        'theme-border': '#d0d0d0', // Light gray for borders/inputs
       },
-      // Custom font examples
       fontFamily: {},
     },
   },
