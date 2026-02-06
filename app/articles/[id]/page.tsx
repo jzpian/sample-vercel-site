@@ -3,6 +3,8 @@ import { getAllArticleIds, getArticleData } from '../../../lib/articles';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+export const dynamicParams = false; // Explicitly set dynamicParams to false
+
 export async function generateStaticParams() {
   console.log("--- generateStaticParams is running ---");
   const paths = getAllArticleIds();
@@ -10,13 +12,12 @@ export async function generateStaticParams() {
   return paths;
 }
 
-export default async function ArticlePage({ params }: { params: { id: string } }) {
-  console.log(`[ArticlePage] Received params: ${JSON.stringify(params)}`);
+export default async function ArticlePage({ params: rawParams }: { params: Promise<{ id: string }> | { id: string } }) {
+  const params = await rawParams; // Await params if it's a Promise
+  console.log(`[ArticlePage] Received params (unwrapped): ${JSON.stringify(params)}`);
 
   if (!params || !params.id) {
     console.error(`[ArticlePage Error] params or params.id is missing: ${JSON.stringify(params)}`);
-    // In a production app, you might want to redirect to a 404 page
-    // For now, we'll throw an error or use notFound()
     notFound();
   }
 
