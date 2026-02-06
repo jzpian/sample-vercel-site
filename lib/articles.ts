@@ -4,11 +4,18 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
 
+// Define a type for a single article's metadata + ID
+export type ArticleData = {
+  id: string;
+  date: string;
+  title: string;
+  author: string;
+  tags: string[];
+  categories: string[];
+};
+
 // Helper to get the absolute path to the articles directory
 const getArticlesDirectory = () => {
-  // In development, process.cwd() is the project root
-  // In Vercel deployment, the 'articles' folder might be outside the root of the bundled serverless function
-  // Using path.resolve for robustness through different environments
   return path.join(process.cwd(), 'articles');
 }
 
@@ -19,7 +26,7 @@ export function getSortedArticlesData() {
     fileNames = fs.readdirSync(articlesDirectory);
   } catch (error) {
     console.error(`Error reading articles directory at ${articlesDirectory}:`, error);
-    return []; // Return empty array if directory cannot be read
+    return [];
   }
 
   const allArticlesData = fileNames.map((fileName) => {
@@ -37,9 +44,9 @@ export function getSortedArticlesData() {
 
     return {
       id,
-      ...(matterResult.data as { date: string; title: string; author: string; tags: string[]; categories: string[] }),
-    };
-  }).filter(Boolean); // Filter out any null entries due to read errors
+      ...(matterResult.data as Omit<ArticleData, 'id'>), // Use Omit as id is already present
+    } as ArticleData; // Explicitly cast to ArticleData to satisfy TS
+  }).filter((article): article is ArticleData => article !== null); // Filter out nulls with a type predicate
 
   // Sort articles by date
   return allArticlesData.sort((a, b) => {
@@ -48,7 +55,7 @@ export function getSortedArticlesData() {
     } else {
       return -1;
     }
-  }) as Array<{id: string; date: string; title: string; author: string; tags: string[]; categories: string[]}>;
+  });
 }
 
 export async function getArticleData(id: string) {
@@ -60,7 +67,6 @@ export async function getArticleData(id: string) {
     fileContents = fs.readFileSync(fullPath, 'utf8');
   } catch (error) {
     console.error(`Error reading article file ${fullPath} for ID ${id}:`, error);
-    // Re-throw to propagate error, e.g., to trigger a 404 in Next.js
     throw new Error(`Failed to read article file: ${id}.md`);
   }
 
@@ -71,7 +77,7 @@ export async function getArticleData(id: string) {
   return {
     id,
     contentHtml,
-    ...(matterResult.data as { date: string; title: string; author: string; tags: string[]; categories: string[] }),
+    ...(matterResult.data as Omit<ArticleData, 'id'>), // Use Omit as id is already present
   };
 }
 
