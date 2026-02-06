@@ -59,9 +59,11 @@ export function getSortedArticlesData() {
 }
 
 export async function getArticleData(id: string) {
+  console.log(`[getArticleData] Received ID: ${id}`); // NEW LOG
+
   if (!id) {
-    console.error("getArticleData received an undefined ID.");
-    throw new Error("Article ID is undefined.");
+    console.error("getArticleData received an undefined or null ID.");
+    throw new Error("Article ID is undefined or null.");
   }
 
   const articlesDirectory = getArticlesDirectory();
